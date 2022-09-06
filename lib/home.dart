@@ -1,8 +1,14 @@
+import 'dart:io';
+
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:miniplayer/miniplayer.dart';
+import 'package:player/audio_list.dart';
+import 'package:player/provider/media_controller_provider.dart';
+import 'package:player/service/get_audio_list.dart';
+import 'package:provider/provider.dart';
 // import 'package:flutter_file_manager/flutter_file_manager.dart';
 
 class Home extends StatefulWidget {
@@ -13,29 +19,13 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  int? duration;
-  bool? playing;
-  AudioPlayer? advancedPlayer;
-  Future loadMusic() async {
-    // advancedPlayer.stop();
+  @override
+  void initState() {
+    Future.microtask(() =>
+        Provider.of<MediaControllerProvider>(context, listen: false)
+            .getMediaList());
 
-    advancedPlayer = await AudioCache().loop("../lib/assets/piya.mp3");
-
-    duration = await advancedPlayer!.getDuration();
-
-    print("Duration is: $duration");
-  }
-
-  Future pauseMusic() async {
-    await advancedPlayer!.pause();
-  }
-
-  Future stopMusic() async {
-    await advancedPlayer!.stop();
-  }
-
-  Future resumeMusic() async {
-    await advancedPlayer!.resume();
+    super.initState();
   }
 
   @override
@@ -52,17 +42,6 @@ class _HomeState extends State<Home> {
             size: 35,
           ),
           title: const Text("Music Player"),
-          actions: [
-            IconButton(icon: const Icon(Icons.search), onPressed: () {}),
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.replay),
-            ),
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.more_vert),
-            ),
-          ],
           bottom: const TabBar(
             tabs: [
               Tab(
@@ -89,37 +68,20 @@ class _HomeState extends State<Home> {
                   Stack(
                     children: [
                       Builder(builder: (context) {
-                        print(advancedPlayer);
-                        return GestureDetector(
-                          child: ListTile(
-                            title: const Text("Song Name"),
-                            subtitle: const Text("Artist Name"),
-                            leading: Container(
-                              child: Image.asset('lib/assets/cover.jfif'),
-                            ),
-                            trailing: IconButton(
-                              onPressed: () {},
-                              icon: Icon(Icons.more_vert),
-                            ),
-                          ),
-                          onTap: () async {
-                            // playLocal();
-                            await loadMusic();
-                            setState(() {
-                              playing = true;
-                            });
-                            print('ssss');
-                          },
-                        );
+                        return MyAudioList();
                       }),
                       Offstage(
-                        offstage: playing == null,
+                        offstage: Provider.of<MediaControllerProvider>(context)
+                                .status ==
+                            null,
                         child: Miniplayer(
                             controller: controller,
                             minHeight: 70,
                             maxHeight: MediaQuery.of(context).size.height,
                             builder: (height, percentage) {
-                              if (advancedPlayer == null)
+                              if (Provider.of<MediaControllerProvider>(context)
+                                      .status ==
+                                  PlayerState.stopped)
                                 return const SizedBox.shrink();
                               else {
                                 // print(advancedPlayer.state);
@@ -128,131 +90,259 @@ class _HomeState extends State<Home> {
                                     child: Column(
                                       children: [
                                         ListTile(
-                                          title: const Text("Song Name"),
-                                          subtitle: const Text("Artist Name"),
-                                          leading: Container(
-                                            child: Image.asset(
-                                                'lib/assets/cover.jfif'),
+                                          title: Text(
+                                            Provider.of<MediaControllerProvider>(
+                                                    context)
+                                                .songList![Provider.of<
+                                                            MediaControllerProvider>(
+                                                        context)
+                                                    .songIndex!]
+                                                .path
+                                                .split('/')
+                                                .last,
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 2,
                                           ),
-                                          trailing: SizedBox(
-                                            width: 50,
-                                            child: Row(
-                                              children: [
-                                                Icon(Icons.search),
-                                                Icon(Icons.featured_play_list)
-                                              ],
-                                            ),
-                                          ),
+                                          // subtitle: Text(
+                                          //     Provider.of<MediaControllerProvider>(
+                                          //                 context)
+                                          //             .metadata
+                                          //             ?.albumArtistName ??
+                                          //         ''),
+                                          // leading: Image.memory(Provider.of<
+                                          //             MediaControllerProvider>(
+                                          //         context)
+                                          //     .metadata!
+                                          //     .albumArt!),
+                                          // Image.asset(
+                                          //     'lib/assets/cover.jfif'),
                                         ),
-                                        Container(
+                                        SizedBox(
                                           height: MediaQuery.of(context)
                                                   .size
                                                   .height *
-                                              0.66,
+                                              0.60,
                                           child: Image.asset(
                                             'lib/assets/cover.jfif',
                                             fit: BoxFit.cover,
                                           ),
                                         ),
-                                        Column(
-                                          children: [
-                                            ProgressBar(
-                                              progress: Duration(seconds: 2000),
-                                              total:
-                                                  Duration(seconds: duration!),
-                                            ),
-                                            // LinearProgressIndicator(),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.spaceAround,
-                                              children: [
-                                                IconButton(
-                                                  onPressed: () {},
-                                                  icon: const Icon(
-                                                    Icons.skip_previous,
-                                                    size: 45,
+                                        StatefulBuilder(
+                                            builder: (context, setState) {
+                                          return Column(
+                                            children: [
+                                              Slider(
+                                                min: 0,
+                                                max: Provider.of<
+                                                            MediaControllerProvider>(
+                                                        context,
+                                                        listen: false)
+                                                    .duration!
+                                                    .inSeconds
+                                                    .toDouble(),
+                                                value: Provider.of<
+                                                            MediaControllerProvider>(
+                                                        context,
+                                                        listen: false)
+                                                    .position!
+                                                    .inSeconds
+                                                    .toDouble(),
+                                                onChanged: (value) {
+                                                  Provider.of<MediaControllerProvider>(
+                                                          context,
+                                                          listen: false)
+                                                      .seek(Duration(
+                                                          seconds:
+                                                              value.toInt()));
+                                                },
+                                              ),
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 20.0),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    Text(Provider.of<
+                                                                MediaControllerProvider>(
+                                                            context,
+                                                            listen: false)
+                                                        .position!
+                                                        .toString()
+                                                        .substring(2, 7)),
+                                                    Text(Provider.of<
+                                                                MediaControllerProvider>(
+                                                            context,
+                                                            listen: false)
+                                                        .duration!
+                                                        .toString()
+                                                        .substring(2, 7))
+                                                  ],
+                                                ),
+                                              ),
+
+                                              // Padding(
+                                              //   padding: const EdgeInsets.only(
+                                              //       left: 20, right: 20),
+                                              //   child: ProgressBar(
+                                              //     barHeight: 0,
+                                              //     progress: Provider.of<
+                                              //                 MediaControllerProvider>(
+                                              //             context,
+                                              //             listen: false)
+                                              //         .position!,
+                                              //     total: Provider.of<
+                                              //                 MediaControllerProvider>(
+                                              //             context,
+                                              //             listen: false)
+                                              //         .duration!,
+                                              //     onSeek: (value) {
+                                              //       Provider.of<MediaControllerProvider>(
+                                              //               context,
+                                              //               listen: false)
+                                              //           .seek(value);
+                                              //       print("seek");
+                                              //     },
+                                              //   ),
+                                              // ),
+                                              // LinearProgressIndicator(),
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceAround,
+                                                children: [
+                                                  IconButton(
+                                                    onPressed: () {
+                                                      Provider.of<MediaControllerProvider>(
+                                                              context,
+                                                              listen: false)
+                                                          .playPrevious();
+                                                    },
+                                                    icon: const Icon(
+                                                      Icons.skip_previous,
+                                                      size: 45,
+                                                    ),
                                                   ),
-                                                ),
-                                                (playing == false)
-                                                    ? IconButton(
-                                                        onPressed: () {
-                                                          print(playing);
-                                                          resumeMusic();
-
-                                                          setState(() {
-                                                            playing = true;
-                                                          });
-                                                        },
-                                                        icon: const Icon(
-                                                          Icons.play_arrow,
-                                                          size: 45,
+                                                  (Provider.of<MediaControllerProvider>(
+                                                                  context)
+                                                              .status ==
+                                                          PlayerState.paused)
+                                                      ? IconButton(
+                                                          onPressed: () {
+                                                            Provider.of<MediaControllerProvider>(
+                                                                    context,
+                                                                    listen:
+                                                                        false)
+                                                                .play(Provider.of<
+                                                                            MediaControllerProvider>(
+                                                                        context,
+                                                                        listen:
+                                                                            false)
+                                                                    .songIndex!);
+                                                          },
+                                                          icon: const Icon(
+                                                            Icons.play_arrow,
+                                                            size: 45,
+                                                          ),
+                                                        )
+                                                      : IconButton(
+                                                          onPressed: () {
+                                                            Provider.of<MediaControllerProvider>(
+                                                                    context,
+                                                                    listen:
+                                                                        false)
+                                                                .pause();
+                                                          },
+                                                          icon: const Icon(
+                                                            Icons.pause,
+                                                            size: 45,
+                                                          ),
                                                         ),
-                                                      )
-                                                    : IconButton(
-                                                        onPressed: () {
-                                                          print(playing);
-
-                                                          pauseMusic();
-                                                          setState(() {
-                                                            playing = false;
-                                                          });
-                                                        },
-                                                        icon: const Icon(
-                                                          Icons.pause,
-                                                          size: 45,
-                                                        ),
-                                                      ),
-                                                IconButton(
-                                                  onPressed: () {},
-                                                  icon: const Icon(
-                                                      Icons.skip_next,
-                                                      size: 45),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        )
+                                                  IconButton(
+                                                    onPressed: () {
+                                                      Provider.of<MediaControllerProvider>(
+                                                              context,
+                                                              listen: false)
+                                                          .playNext();
+                                                    },
+                                                    icon: const Icon(
+                                                        Icons.skip_next,
+                                                        size: 45),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          );
+                                        })
                                       ],
                                     ),
                                   );
                                 } else {
-                                  return ListTile(
-                                    title: const Text("Song Name"),
-                                    subtitle: const Text("Artist Name"),
-                                    leading: Container(
-                                      child:
-                                          Image.asset('lib/assets/cover.jfif'),
-                                    ),
-                                    trailing: (playing == false)
-                                        ? IconButton(
-                                            onPressed: () {
-                                              print(playing);
-                                              resumeMusic();
-
-                                              setState(() {
-                                                playing = true;
-                                              });
-                                            },
-                                            icon: const Icon(
-                                              Icons.play_arrow,
-                                              size: 45,
-                                            ),
-                                          )
-                                        : IconButton(
-                                            onPressed: () {
-                                              print(playing);
-
-                                              pauseMusic();
-                                              setState(() {
-                                                playing = false;
-                                              });
-                                            },
-                                            icon: const Icon(
-                                              Icons.pause,
-                                              size: 45,
-                                            ),
+                                  return Provider.of<MediaControllerProvider>(
+                                                  context)
+                                              .songIndex ==
+                                          null
+                                      ? const SizedBox()
+                                      : ListTile(
+                                          title: Text(
+                                            Provider.of<MediaControllerProvider>(
+                                                    context)
+                                                .songList![Provider.of<
+                                                            MediaControllerProvider>(
+                                                        context)
+                                                    .songIndex!]
+                                                .path
+                                                .split('/')
+                                                .last,
+                                            // overflow: TextOverflow.ellipsis,
+                                            // maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 2,
                                           ),
-                                  );
+                                          // subtitle:  Text(Provider.of<MediaControllerProvider>(
+                                          //                       context)
+                                          //                   .metadata
+                                          //                   ?. ??
+                                          //               ''),
+                                          leading: Container(
+                                            child: Image.asset(
+                                                'lib/assets/cover.jfif'),
+                                          ),
+                                          trailing:
+                                              (Provider.of<MediaControllerProvider>(
+                                                              context)
+                                                          .status ==
+                                                      PlayerState.paused)
+                                                  ? IconButton(
+                                                      onPressed: () {
+                                                        Provider.of<MediaControllerProvider>(
+                                                                context,
+                                                                listen: false)
+                                                            .play(Provider.of<
+                                                                        MediaControllerProvider>(
+                                                                    context)
+                                                                .songIndex!);
+                                                      },
+                                                      icon: const Icon(
+                                                        Icons.play_arrow,
+                                                        size: 45,
+                                                      ),
+                                                    )
+                                                  : IconButton(
+                                                      onPressed: () {
+                                                        Provider.of<MediaControllerProvider>(
+                                                                context,
+                                                                listen: false)
+                                                            .pause();
+                                                      },
+                                                      icon: const Icon(
+                                                        Icons.pause,
+                                                        size: 45,
+                                                      ),
+                                                    ),
+                                        );
                                 }
                               }
                             }),

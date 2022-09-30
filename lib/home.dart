@@ -6,6 +6,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:miniplayer/miniplayer.dart';
 import 'package:player/audio_list.dart';
+import 'package:player/constants/media_constant.dart';
 import 'package:player/provider/media_controller_provider.dart';
 import 'package:player/service/get_audio_list.dart';
 import 'package:provider/provider.dart';
@@ -122,9 +123,22 @@ class _HomeState extends State<Home> {
                                                   .size
                                                   .height *
                                               0.60,
-                                          child: Image.asset(
-                                            'lib/assets/cover.jfif',
+                                          // child: Image.asset(
+                                          //   'lib/assets/cover.jfif',
+                                          //   fit: BoxFit.cover,
+                                          // ),
+                                          child: Image.memory(
+                                            Provider.of<MediaControllerProvider>(
+                                                        context)
+                                                    .audioArtwork ??
+                                                placeholderCover,
                                             fit: BoxFit.cover,
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                              return Image.asset(
+                                                  errorReplaceCover,
+                                                  fit: BoxFit.cover);
+                                            },
                                           ),
                                         ),
                                         StatefulBuilder(
@@ -296,19 +310,21 @@ class _HomeState extends State<Home> {
                                                 .path
                                                 .split('/')
                                                 .last,
-                                            // overflow: TextOverflow.ellipsis,
-                                            // maxLines: 2,
                                             overflow: TextOverflow.ellipsis,
                                             maxLines: 2,
                                           ),
-                                          // subtitle:  Text(Provider.of<MediaControllerProvider>(
-                                          //                       context)
-                                          //                   .metadata
-                                          //                   ?. ??
-                                          //               ''),
-                                          leading: Container(
-                                            child: Image.asset(
-                                                'lib/assets/cover.jfif'),
+                                          leading: Image.memory(
+                                            Provider.of<MediaControllerProvider>(
+                                                        context)
+                                                    .audioArtwork ??
+                                                placeholderCover,
+                                            fit: BoxFit.contain,
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                              return Image.asset(
+                                                  errorReplaceCover,
+                                                  fit: BoxFit.cover);
+                                            },
                                           ),
                                           trailing:
                                               (Provider.of<MediaControllerProvider>(

@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:audiotagger/audiotagger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
 import 'package:flutter_ffmpeg/media_information.dart';
@@ -15,6 +17,7 @@ class MediaControllerProvider with ChangeNotifier {
   FileSystemEntity? _audioFile;
   MediaInformation? _metadata;
   FlutterFFprobe? flutterFFprobe;
+  Uint8List? _artwork;
   /////get
   PlayerState? get status => _status;
   Duration? get duration => _duration;
@@ -23,6 +26,7 @@ class MediaControllerProvider with ChangeNotifier {
   List<FileSystemEntity>? get songList => _songList;
   FileSystemEntity? get audioFile => _audioFile;
   MediaInformation? get metadata => _metadata;
+  Uint8List? get audioArtwork => _artwork;
 
   MediaControllerProvider() {
     _audioPlayer = AudioPlayer();
@@ -42,7 +46,7 @@ class MediaControllerProvider with ChangeNotifier {
     getMediaList();
   }
   getMediaList() async {
-    Directory dir = Directory('/storage/emulated/0/Download/');
+    Directory dir = Directory('/storage/emulated/0/Music/');
     String mp3Path = dir.toString();
 
     var _files;
@@ -61,9 +65,9 @@ class MediaControllerProvider with ChangeNotifier {
     Future.delayed(const Duration(seconds: 2), () async {
       _duration = await _audioPlayer?.getDuration();
     });
-    _metadata =
-        await flutterFFprobe?.getMediaInformation(_songList[index].path);
     _songIndex = index;
+
+    await getAudioTags(_songList[index].path);
     notifyListeners();
   }
 
@@ -87,6 +91,15 @@ class MediaControllerProvider with ChangeNotifier {
   stop() async {
     await _audioPlayer?.stop();
     notifyListeners();
+  }
+
+  getAudioTags(String url) async {
+    print("URL: $url");
+    final audioTags = await Audiotagger().readTagsAsMap(path: url);
+    final audioArtwork = await Audiotagger().readArtwork(path: url);
+    _artwork = audioArtwork;
+    print(audioArtwork);
+    print("MetaData: $audioTags");
   }
 
   @override

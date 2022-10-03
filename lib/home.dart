@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:miniplayer/miniplayer.dart';
+import 'package:player/screens/album/albums.dart';
 import 'package:player/audio_list.dart';
 import 'package:player/constants/media_constant.dart';
 import 'package:player/provider/media_controller_provider.dart';
@@ -196,32 +197,6 @@ class _HomeState extends State<Home> {
                                                   ],
                                                 ),
                                               ),
-
-                                              // Padding(
-                                              //   padding: const EdgeInsets.only(
-                                              //       left: 20, right: 20),
-                                              //   child: ProgressBar(
-                                              //     barHeight: 0,
-                                              //     progress: Provider.of<
-                                              //                 MediaControllerProvider>(
-                                              //             context,
-                                              //             listen: false)
-                                              //         .position!,
-                                              //     total: Provider.of<
-                                              //                 MediaControllerProvider>(
-                                              //             context,
-                                              //             listen: false)
-                                              //         .duration!,
-                                              //     onSeek: (value) {
-                                              //       Provider.of<MediaControllerProvider>(
-                                              //               context,
-                                              //               listen: false)
-                                              //           .seek(value);
-                                              //       print("seek");
-                                              //     },
-                                              //   ),
-                                              // ),
-                                              // LinearProgressIndicator(),
                                               Row(
                                                 mainAxisAlignment:
                                                     MainAxisAlignment
@@ -365,7 +340,7 @@ class _HomeState extends State<Home> {
                       ),
                     ],
                   ),
-                  Text('asdf'),
+                  const AlbumTab(),
                   Text('djfgk'),
                   Text('kkhiue'),
                 ],

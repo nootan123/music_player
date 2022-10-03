@@ -6,6 +6,8 @@ import 'package:audiotagger/audiotagger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
 import 'package:flutter_ffmpeg/media_information.dart';
+import 'package:player/constants/media_constant.dart';
+import 'package:player/models/album_model.dart';
 
 class MediaControllerProvider with ChangeNotifier {
   AudioPlayer? _audioPlayer;
@@ -18,6 +20,7 @@ class MediaControllerProvider with ChangeNotifier {
   MediaInformation? _metadata;
   FlutterFFprobe? flutterFFprobe;
   Uint8List? _artwork;
+  List<AlbumModel> _albums = [];
   /////get
   PlayerState? get status => _status;
   Duration? get duration => _duration;
@@ -27,6 +30,7 @@ class MediaControllerProvider with ChangeNotifier {
   FileSystemEntity? get audioFile => _audioFile;
   MediaInformation? get metadata => _metadata;
   Uint8List? get audioArtwork => _artwork;
+  List<AlbumModel> get albums => _albums;
 
   MediaControllerProvider() {
     _audioPlayer = AudioPlayer();
@@ -35,10 +39,6 @@ class MediaControllerProvider with ChangeNotifier {
     _audioPlayer?.onPlayerStateChanged.listen((state) {
       _status = state;
     });
-    // _audioPlayer?.onDurationChanged.listen((duration) {
-    //   _duration = duration;
-    //   notifyListeners();
-    // });
     _audioPlayer?.onPositionChanged.listen((newPosition) {
       _position = newPosition;
       notifyListeners();
@@ -46,7 +46,7 @@ class MediaControllerProvider with ChangeNotifier {
     getMediaList();
   }
   getMediaList() async {
-    Directory dir = Directory('/storage/emulated/0/Music/');
+    Directory dir = Directory('/storage/emulated/0/');
     String mp3Path = dir.toString();
 
     var _files;
@@ -57,6 +57,7 @@ class MediaControllerProvider with ChangeNotifier {
         _songList.add(entity);
       }
     }
+
     notifyListeners();
   }
 
@@ -100,6 +101,24 @@ class MediaControllerProvider with ChangeNotifier {
     _artwork = audioArtwork;
     print(audioArtwork);
     print("MetaData: $audioTags");
+  }
+
+  getAlbumList() async {
+    for (int i = 0; i < _songList.length; i++) {
+      final audioTrack =
+          await Audiotagger().readTagsAsMap(path: _songList[i].path);
+      final albumName = audioTrack?['album'] ?? unknownAlbum;
+      int index = _albums.indexWhere((album) => album.albumName == albumName);
+      if (index == -1) {
+        final albumModel =
+            AlbumModel(albumName: albumName, songList: [_songList[i]]);
+        _albums.add(albumModel);
+      } else {
+        _albums[index].songList?.add(_songList[i]);
+      }
+    }
+    notifyListeners();
+    // print("albums::: ${_albums[0].songList!.length}");
   }
 
   @override

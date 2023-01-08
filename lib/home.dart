@@ -20,11 +20,11 @@ class Home extends StatefulWidget {
   _HomeState createState() => _HomeState();
 }
 
+final MiniplayerController controller = MiniplayerController();
+
 class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
-    final MiniplayerController controller = MiniplayerController();
-
     return DefaultTabController(
       length: 4,
       child: Scaffold(

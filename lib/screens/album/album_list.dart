@@ -27,12 +27,20 @@ class _AlbumListState extends State<AlbumList> {
               ?.length,
           itemBuilder: ((context, index) {
             return MusicListCard(
-            title: Provider.of<MediaControllerProvider>(context).albums[widget.index].songList?[index].path.split('/').last?? '',
-            index: index);
-            // return ListTile(
-            //   title: Text(
-            //       "${Provider.of<MediaControllerProvider>(context).albums[widget.index].songList?[index].path.split('/').last}"),
-            // );
+              title: Provider.of<MediaControllerProvider>(context)
+                      .albums[widget.index]
+                      .songList?[index]
+                      .path
+                      .split('/')
+                      .last ??
+                  '',
+              index: index,
+              audioPath: Provider.of<MediaControllerProvider>(context)
+                  .albums[widget.index]
+                  .songList?[index]
+                  .path,
+            );
+            
           })),
     );
   }

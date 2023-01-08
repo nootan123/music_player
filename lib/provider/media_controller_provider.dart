@@ -65,8 +65,10 @@ class MediaControllerProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  play(int index) async {
-    await _audioPlayer?.play(DeviceFileSource(_songList[index].path));
+  play(int index, {String? audioPath}) async {
+    audioPath != null
+        ? _audioPlayer?.play(DeviceFileSource(audioPath))
+        : await _audioPlayer?.play(DeviceFileSource(_songList[index].path));
     Future.delayed(const Duration(seconds: 2), () async {
       _duration = await _audioPlayer?.getDuration();
     });

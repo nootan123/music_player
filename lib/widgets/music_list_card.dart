@@ -4,22 +4,25 @@ import 'package:provider/provider.dart';
 
 class MusicListCard extends StatelessWidget {
   final String title;
- final int index;
-  const MusicListCard({Key? key,required this.title, required this.index}) : super(key: key);
+  final int index;
+  final String? audioPath;
+  const MusicListCard(
+      {Key? key, required this.title, required this.index, this.audioPath})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Card(
         child: ListTile(
       title: Text(title),
-      leading:const Icon(Icons.audiotrack),
-      trailing:const Icon(
+      leading: const Icon(Icons.audiotrack),
+      trailing: const Icon(
         Icons.play_arrow,
         color: Colors.redAccent,
       ),
       onTap: () async {
         await Provider.of<MediaControllerProvider>(context, listen: false)
-            .play(index);
+            .play(index, audioPath: audioPath);
       },
     ));
   }

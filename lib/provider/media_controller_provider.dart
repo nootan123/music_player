@@ -43,7 +43,11 @@ class MediaControllerProvider with ChangeNotifier {
       _position = newPosition;
       notifyListeners();
     });
+    _audioPlayer?.onPlayerComplete.listen((event) {
+      play(songIndex! + 1);
+    });
     getMediaList();
+    getAlbumList();
   }
   getMediaList() async {
     Directory dir = Directory('/storage/emulated/0/');
@@ -118,7 +122,6 @@ class MediaControllerProvider with ChangeNotifier {
       }
     }
     notifyListeners();
-    // print("albums::: ${_albums[0].songList!.length}");
   }
 
   @override

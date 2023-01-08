@@ -22,15 +22,6 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   @override
-  void initState() {
-    Future.microtask(() =>
-        Provider.of<MediaControllerProvider>(context, listen: false)
-            .getMediaList());
-
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final MiniplayerController controller = MiniplayerController();
 
@@ -65,7 +56,6 @@ class _HomeState extends State<Home> {
           children: [
             Expanded(
               child: TabBarView(
-                // controller: ,
                 children: [
                   Stack(
                     children: [
@@ -83,51 +73,33 @@ class _HomeState extends State<Home> {
                             builder: (height, percentage) {
                               if (Provider.of<MediaControllerProvider>(context)
                                       .status ==
-                                  PlayerState.stopped)
+                                  PlayerState.stopped) {
                                 return const SizedBox.shrink();
-                              else {
+                              } else {
                                 // print(advancedPlayer.state);
                                 if (percentage > 0.01) {
                                   return SingleChildScrollView(
                                     child: Column(
                                       children: [
                                         ListTile(
-                                          title: Text(
-                                            Provider.of<MediaControllerProvider>(
-                                                    context)
-                                                .songList![Provider.of<
-                                                            MediaControllerProvider>(
-                                                        context)
-                                                    .songIndex!]
-                                                .path
-                                                .split('/')
-                                                .last,
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 2,
-                                          ),
-                                          // subtitle: Text(
-                                          //     Provider.of<MediaControllerProvider>(
-                                          //                 context)
-                                          //             .metadata
-                                          //             ?.albumArtistName ??
-                                          //         ''),
-                                          // leading: Image.memory(Provider.of<
-                                          //             MediaControllerProvider>(
-                                          //         context)
-                                          //     .metadata!
-                                          //     .albumArt!),
-                                          // Image.asset(
-                                          //     'lib/assets/cover.jfif'),
-                                        ),
+                                            title: Text(
+                                          Provider.of<MediaControllerProvider>(
+                                                  context)
+                                              .songList![Provider.of<
+                                                          MediaControllerProvider>(
+                                                      context)
+                                                  .songIndex!]
+                                              .path
+                                              .split('/')
+                                              .last,
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 2,
+                                        )),
                                         SizedBox(
                                           height: MediaQuery.of(context)
                                                   .size
                                                   .height *
                                               0.60,
-                                          // child: Image.asset(
-                                          //   'lib/assets/cover.jfif',
-                                          //   fit: BoxFit.cover,
-                                          // ),
                                           child: Image.memory(
                                             Provider.of<MediaControllerProvider>(
                                                         context)
